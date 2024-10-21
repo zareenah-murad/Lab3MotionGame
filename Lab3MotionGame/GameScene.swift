@@ -13,12 +13,17 @@ class GameScene: SKScene {
     
     // MARK: Properties
     let motion = CMMotionManager()
-    let minionSprite = SKSpriteNode(imageNamed: "minion.png") // Minion sprite with basket
-    let scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
     
-    var score: Int = 0 {
-        willSet(newValue) {
-            DispatchQueue.main.async {
+    var previousPositionX: CGFloat = 0.0  // track phone's previous position for smoothing
+    var filterFactor: CGFloat = 0.9  // factor for low-pass filter
+    
+    
+    // MARK: Create Sprites Functions
+    let minion = SKSpriteNode()
+    let scoreLabel = SKLabelNode(fontNamed: "American Typewriter")
+    var score:Int = 0 {
+        willSet(newValue){
+            DispatchQueue.main.async{
                 self.scoreLabel.text = "Score: \(newValue)"
             }
         }
@@ -28,47 +33,52 @@ class GameScene: SKScene {
         // Set up the physics world delegate
         physicsWorld.contactDelegate = self
         
+        // Adjust gravity to make bananas/bombs fall slower
+            physicsWorld.gravity = CGVector(dx: 0.0, dy: -3.0)
+
+            
+        // background color
         backgroundColor = SKColor.white
+            
+        // start motion for minion movement
+        self.startMotionUpdates()
+            
+        // add the minion
+        self.addMinion()
         
-        // Start CoreMotion for gravity-based movement
-        startMotionUpdates()
+        // add the invisible ground
+        self.addGround()
+            
+        let dropItemAction = SKAction.repeatForever(SKAction.sequence([
+            SKAction.run {
+                // randomly decide whether to drop a banana or a bomb
+                // 80% bananas, 20% bombs
+                let randomNumber = Int.random(in: 1...100)
+                if randomNumber <= 80 {
+                    self.addBanana()
+                } else {
+                    self.addBomb()
+                }
+            },
+            SKAction.wait(forDuration: 2.0)
+        ]))
+        self.run(dropItemAction)
+
         
-        // Set up game elements
-        addSidesAndTop() // Add screen edges
-        addStaticBlocks() // Add stationary blocks
-        addMinionSprite() // Add minion sprite with basket
-        addScoreLabel() // Add score label
-        
-        score = 0 // Initialize score
+        // add score system
+        self.addScore()
+        self.score = 0
     }
     
-    // MARK: Add Minion Sprite
-    func addMinionSprite() {
-        // Set the size of the minion to maintain aspect ratio
-        let originalMinionTexture = SKTexture(imageNamed: "minion.png")
-        let minionAspectRatio = originalMinionTexture.size().width / originalMinionTexture.size().height
-        
-        // Adjust the height of the minion and calculate the corresponding width
-        let minionHeight = size.height * 0.2 // Set the height to 20% of the screen height
-        let minionWidth = minionHeight * minionAspectRatio // Maintain aspect ratio
-        
-        // Set the size and position of the minion
-        minionSprite.size = CGSize(width: minionWidth, height: minionHeight)
-        
-        // Position the minion a little higher to avoid covering the score
-        minionSprite.position = CGPoint(x: size.width * 0.5, y: size.height * 0.2)
-        
-        // Physics body for the minion
-        minionSprite.physicsBody = SKPhysicsBody(rectangleOf: minionSprite.size)
-        minionSprite.physicsBody?.isDynamic = true
-        minionSprite.physicsBody?.affectedByGravity = false // No vertical movement due to gravity
-        minionSprite.physicsBody?.allowsRotation = false // Prevent rotation
-        
-        addChild(minionSprite)
-    }
+
     
-    // MARK: Add Score Label
-    func addScoreLabel() {
+    func addScore(){
+        // Create background box for the score label
+        let scoreBackground = SKSpriteNode(color: SKColor.black, size: CGSize(width: 200, height: 50))
+        scoreBackground.position = CGPoint(x: frame.midX, y: frame.minY + 50)
+        scoreBackground.zPosition = 1  // Ensure it's behind the score label
+        
+        // Create the score label
         scoreLabel.text = "Score: 0"
         scoreLabel.fontSize = 24
         scoreLabel.fontColor = SKColor.blue
@@ -142,6 +152,8 @@ class GameScene: SKScene {
             minionSprite.position.x = newXPosition
         }
     }
+
+
     
     // MARK: Utility Functions
     func random() -> CGFloat {
@@ -149,7 +161,7 @@ class GameScene: SKScene {
     }
     
     func random(min: CGFloat, max: CGFloat) -> CGFloat {
-        return random() * (max - min) + min
+        return CGFloat(arc4random_uniform(UInt32(max - min))) + min
     }
 }
 
