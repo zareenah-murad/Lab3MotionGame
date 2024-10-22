@@ -21,6 +21,10 @@ class GameScene: SKScene {
     // Track the current direction to apply flipping
     var lastDirection: CGFloat = 0.0
     
+    // Track which banana sound to play
+    var isFirstSound = true
+
+    
     // MARK: Create Sprites Functions
     let minion = SKSpriteNode()
     let scoreLabel = SKLabelNode(fontNamed: "American Typewriter")
@@ -150,8 +154,6 @@ class GameScene: SKScene {
     }
 
 
-
-    
     // MARK: Add Minion
     func addMinion() {
         let minionTexture = SKTexture(imageNamed: "minion")
@@ -196,6 +198,43 @@ class GameScene: SKScene {
         self.addChild(ground)
     }
     
+    func displayMessage(_ message: String) {
+        // Create a background label
+        let messageBackground = SKSpriteNode(color: SKColor.lightGray, size: CGSize(width: 300, height: 50))
+        messageBackground.position = CGPoint(x: frame.midX, y: frame.midY + 200)
+        messageBackground.zPosition = 1
+        addChild(messageBackground)
+        
+        // Create a label for the message
+        let messageLabel = SKLabelNode(fontNamed: "American Typewriter")
+        messageLabel.text = message
+        messageLabel.fontSize = 24
+        messageLabel.fontColor = SKColor.white
+        messageLabel.position = CGPoint(x: 0, y: -messageLabel.frame.height / 2)  // Center it vertically within the background
+        messageLabel.horizontalAlignmentMode = .center  // Ensure text is centered horizontally
+        messageLabel.zPosition = 2
+        messageBackground.addChild(messageLabel)
+        
+        // Add fade out effect and remove from parent after fade
+        let fadeOutAction = SKAction.fadeOut(withDuration: 2.0)
+        let removeAction = SKAction.removeFromParent()
+        let sequence = SKAction.sequence([fadeOutAction, removeAction])
+        
+        messageBackground.run(sequence)
+    }
+
+    func playAlternateCatchSound() {
+        if isFirstSound {
+            playSound(named: "catchBanana.mp3")
+        } else {
+            playSound(named: "catchBanana2.mp3")
+        }
+        
+        // Toggle the boolean for the next time
+        isFirstSound.toggle()
+    }
+
+    
     func checkWinCondition() {
         if self.score >= 10 {
             self.winGame()
@@ -208,6 +247,9 @@ class GameScene: SKScene {
 
         // Stop minion movement by stopping motion updates
         self.motion.stopDeviceMotionUpdates()
+        
+        // play winning sound
+        playSound(named: "youWin.mp3")
 
         // Create a more muted green background for "You Win" label
         let winBackground = SKSpriteNode(color: SKColor(red: 0.2, green: 0.7, blue: 0.2, alpha: 1.0), size: CGSize(width: 250, height: 80))
@@ -255,10 +297,6 @@ class GameScene: SKScene {
         exitLabel.zPosition = 2
         exitBackground.addChild(exitLabel)
     }
-
-
-
-
     
     func checkGameOver() {
         if self.score < 0 {
@@ -272,6 +310,9 @@ class GameScene: SKScene {
 
         // Stop minion movement by stopping motion updates
         self.motion.stopDeviceMotionUpdates()
+        
+        // play losing sound
+        playSound(named: "youLose.mp3")
 
         // Create opaque red background for "Game Over" label
         let gameOverBackground = SKSpriteNode(color: SKColor.red, size: CGSize(width: 250, height: 80))
@@ -332,28 +373,34 @@ extension GameScene: SKPhysicsContactDelegate {
         // Handle banana and minion collision (banana caught)
         if (contact.bodyA.node?.name == "banana" && contact.bodyB.node?.name == "minion") ||
            (contact.bodyA.node?.name == "minion" && contact.bodyB.node?.name == "banana") {
-            self.score += 1  // Increment score when banana is caught
+            self.score += 1
             if contact.bodyA.node?.name == "banana" {
                 contact.bodyA.node?.removeFromParent()
             } else if contact.bodyB.node?.name == "banana" {
                 contact.bodyB.node?.removeFromParent()
             }
-            self.checkWinCondition()  // Check win condition after catching a banana
+            displayMessage("Banana Acquired!")  // Show the message
+            playAlternateCatchSound()  // Alternate between the two banana sounds
+            self.checkWinCondition()
         }
+
         
         // Handle banana hitting the ground (banana missed)
         if (contact.bodyA.node?.name == "banana" && contact.bodyB.node?.name == "ground") ||
            (contact.bodyA.node?.name == "ground" && contact.bodyB.node?.name == "banana") {
-            self.score -= 1  // Decrement score when banana hits the ground (missed)
+            self.score -= 1
             if contact.bodyA.node?.name == "banana" {
                 contact.bodyA.node?.removeFromParent()
             } else if contact.bodyB.node?.name == "banana" {
                 contact.bodyB.node?.removeFromParent()
             }
-            self.checkGameOver()  // Check if game over condition is met after losing a point
+            displayMessage("Banana Missed!")  // Show the message
+            playSound(named: "missedBanana.mp3")  // Play the sound
+            self.checkGameOver()  // Check if the score goes below 0 after deduction
         }
-        
-        // Handle bomb and minion collision (bomb hit)
+
+
+        // Handle hitting a bomb
         if (contact.bodyA.node?.name == "bomb" && contact.bodyB.node?.name == "minion") ||
            (contact.bodyA.node?.name == "minion" && contact.bodyB.node?.name == "bomb") {
             if contact.bodyA.node?.name == "bomb" {
@@ -361,9 +408,21 @@ extension GameScene: SKPhysicsContactDelegate {
             } else if contact.bodyB.node?.name == "bomb" {
                 contact.bodyB.node?.removeFromParent()
             }
-            self.gameOver()  // Trigger game over when a bomb hits the minion
+            displayMessage("Hit Bomb!")  // Show the message
+            playSound(named: "hitBomb.mp3")  // Play the sound
+            
+            // Add a delay to allow the sound to play before game over
+            let delay = SKAction.wait(forDuration: 0.1)
+            let triggerGameOver = SKAction.run {
+                self.gameOver()
+            }
+                
+            // Run the actions in sequence
+            self.run(SKAction.sequence([delay, triggerGameOver]))
         }
+
     }
+
 
 }
 
@@ -425,6 +484,12 @@ extension GameScene{
         }
     }
 
+    
+    // MARK: Sound Effects!
+    func playSound(named soundFileName: String) {
+        let sound = SKAction.playSoundFileNamed(soundFileName, waitForCompletion: false)
+        self.run(sound)
+    }
 
     
     // MARK: Utility Functions (thanks ray wenderlich!)
