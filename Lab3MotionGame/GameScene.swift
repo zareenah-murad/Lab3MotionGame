@@ -58,11 +58,11 @@ class GameScene: SKScene {
         // Add the invisible ground
         self.addGround()
         
-        // Schedule bananas and bombs to fall
+        // Schedule bananas and bombs to fall, 70% bananas and 30% bombs
         let dropItemAction = SKAction.repeatForever(SKAction.sequence([
             SKAction.run {
                 let randomNumber = Int.random(in: 1...100)
-                if randomNumber <= 80 {
+                if randomNumber <= 70 {
                     self.addBanana()
                 } else {
                     self.addBomb()
@@ -100,18 +100,16 @@ class GameScene: SKScene {
         let bananaTexture = SKTexture(imageNamed: "banana")
 
         let aspectRatio = bananaTexture.size().height / bananaTexture.size().width
-        
         let bananaWidth = size.width * 0.3  // Adjust width to 30% of screen width
         let bananaHeight = bananaWidth * aspectRatio
-        
-        // Create banana sprite with correct aspect ratio
+
         let banana = SKSpriteNode(texture: bananaTexture)
         banana.size = CGSize(width: bananaWidth, height: bananaHeight)
-        
+
         // Generate a random position at the top
-        let randomX = random(min: bananaWidth / 2, max: size.width - bananaWidth / 2)
+        let randomX = CGFloat.random(in: bananaWidth / 2...(size.width - bananaWidth / 2))  // Random X within screen bounds
         banana.position = CGPoint(x: randomX, y: size.height * 0.9)  // Top of the screen
-                
+                    
         // Set up the physics body for falling
         banana.physicsBody = SKPhysicsBody(rectangleOf: banana.size)
         banana.physicsBody?.restitution = 0.2  // Less bouncy for realism
@@ -125,23 +123,20 @@ class GameScene: SKScene {
     }
 
 
-    
     func addBomb() {
         let bombTexture = SKTexture(imageNamed: "bomb")
 
         let aspectRatio = bombTexture.size().height / bombTexture.size().width
-            
         let bombWidth = size.width * 0.2  // Adjust width to 20% of screen width
         let bombHeight = bombWidth * aspectRatio
-            
-        // Create bomb sprite with correct aspect ratio
+
         let bomb = SKSpriteNode(texture: bombTexture)
         bomb.size = CGSize(width: bombWidth, height: bombHeight)
-            
+
         // Generate random position at the top
-        let randomX = random(min: bombWidth / 2, max: size.width - bombWidth / 2)
+        let randomX = CGFloat.random(in: bombWidth / 2...(size.width - bombWidth / 2))  // Random X within screen bounds
         bomb.position = CGPoint(x: randomX, y: size.height * 0.9)  // Top of the screen
-                    
+
         // Set up the physics body for falling
         bomb.physicsBody = SKPhysicsBody(rectangleOf: bomb.size)
         bomb.physicsBody?.restitution = 0.2
@@ -150,7 +145,7 @@ class GameScene: SKScene {
         bomb.physicsBody?.collisionBitMask = 0x00000001
         bomb.physicsBody?.categoryBitMask = 0x00000002
         bomb.name = "bomb"
-            
+        
         self.addChild(bomb)
     }
 
@@ -169,10 +164,14 @@ class GameScene: SKScene {
         minion.texture = minionTexture
         minion.position = CGPoint(x: size.width * 0.5, y: size.height * 0.2)
         
-        minion.physicsBody = SKPhysicsBody(rectangleOf: minion.size)
-        minion.physicsBody?.isDynamic = false
-        minion.physicsBody?.affectedByGravity = false
-        minion.physicsBody?.allowsRotation = false
+        // Use a custom physics body with a narrower width and a slightly taller height
+        let physicsBodyWidth = minion.size.width * 0.6  // Even narrower
+        let physicsBodyHeight = minion.size.height * 1.1  // Slightly taller to detect collisions earlier
+
+        minion.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: physicsBodyWidth, height: physicsBodyHeight))
+        minion.physicsBody?.isDynamic = false  // Ensure the minion doesn't move
+        minion.physicsBody?.affectedByGravity = false  // Ensure gravity does not affect the minion
+        minion.physicsBody?.allowsRotation = false  // Prevent rotation
         minion.physicsBody?.contactTestBitMask = 0x00000001
         minion.physicsBody?.collisionBitMask = 0x00000001
         minion.physicsBody?.categoryBitMask = 0x00000001
@@ -180,6 +179,8 @@ class GameScene: SKScene {
         
         self.addChild(minion)
     }
+
+
     
     // create invisible ground to detect when a banana is missed
     // deduct points if a banana collides with ground
@@ -204,48 +205,58 @@ class GameScene: SKScene {
     func winGame() {
         // Stop all actions
         self.removeAllActions()
-        
+
         // Stop minion movement by stopping motion updates
         self.motion.stopDeviceMotionUpdates()
+
+        // Create a more muted green background for "You Win" label
+        let winBackground = SKSpriteNode(color: SKColor(red: 0.2, green: 0.7, blue: 0.2, alpha: 1.0), size: CGSize(width: 250, height: 80))
+        winBackground.position = CGPoint(x: frame.midX, y: frame.midY + 80) // Higher position
+        winBackground.zPosition = 1
+        self.addChild(winBackground)
         
-        // Display "You Win" label with a brighter yellow color
+        // Create "You Win" label (smaller size, centered vertically)
         let winLabel = SKLabelNode(fontNamed: "American Typewriter")
         winLabel.text = "You Win!"
-        winLabel.fontSize = 40
-        winLabel.fontColor = SKColor(red: 1.0, green: 0.85, blue: 0.2, alpha: 1.0) // Brighter yellow color
-        winLabel.position = CGPoint(x: frame.midX, y: frame.midY + 50)
-        addChild(winLabel)
+        winLabel.fontSize = 35
+        winLabel.fontColor = SKColor.white
+        winLabel.position = CGPoint(x: 0, y: -winLabel.frame.height / 2)
+        winLabel.horizontalAlignmentMode = .center
+        winLabel.zPosition = 2
+        winBackground.addChild(winLabel)
         
-        // Create background for Play Again button with brighter yellow color
-        let playAgainBackground = SKSpriteNode(color: SKColor(red: 1.0, green: 0.85, blue: 0.2, alpha: 1.0), size: CGSize(width: 200, height: 50))
-        playAgainBackground.position = CGPoint(x: frame.midX, y: frame.midY - 30)
+        // Add Play Again button with purple background
+        let playAgainBackground = SKSpriteNode(color: SKColor.purple, size: CGSize(width: 200, height: 50))
+        playAgainBackground.position = CGPoint(x: frame.midX, y: frame.midY - 10)  // Position adjusted
         playAgainBackground.name = "playAgainButton"
+        playAgainBackground.zPosition = 1
+        self.addChild(playAgainBackground)
         
-        // Create label for Play Again button
         let playAgainLabel = SKLabelNode(fontNamed: "American Typewriter")
         playAgainLabel.text = "Play Again"
         playAgainLabel.fontSize = 30
         playAgainLabel.fontColor = SKColor.white
         playAgainLabel.position = CGPoint(x: 0, y: -10)
-        
+        playAgainLabel.zPosition = 2
         playAgainBackground.addChild(playAgainLabel)
-        addChild(playAgainBackground)
         
-        // Create background for Exit button with a blue color (you can adjust this too if needed)
+        // Add Exit button with blue background
         let exitBackground = SKSpriteNode(color: SKColor.blue, size: CGSize(width: 200, height: 50))
-        exitBackground.position = CGPoint(x: frame.midX, y: frame.midY - 80)
+        exitBackground.position = CGPoint(x: frame.midX, y: frame.midY - 60)  // Position adjusted
         exitBackground.name = "exitButton"
+        exitBackground.zPosition = 1
+        self.addChild(exitBackground)
         
-        // Create label for Exit button
         let exitLabel = SKLabelNode(fontNamed: "American Typewriter")
         exitLabel.text = "Exit"
         exitLabel.fontSize = 30
         exitLabel.fontColor = SKColor.white
         exitLabel.position = CGPoint(x: 0, y: -10)
-        
+        exitLabel.zPosition = 2
         exitBackground.addChild(exitLabel)
-        addChild(exitBackground)
     }
+
+
 
 
     
@@ -258,47 +269,55 @@ class GameScene: SKScene {
     func gameOver() {
         // Stop all actions
         self.removeAllActions()
-        
+
         // Stop minion movement by stopping motion updates
         self.motion.stopDeviceMotionUpdates()
+
+        // Create opaque red background for "Game Over" label
+        let gameOverBackground = SKSpriteNode(color: SKColor.red, size: CGSize(width: 250, height: 80))
+        gameOverBackground.position = CGPoint(x: frame.midX, y: frame.midY + 80) // Higher position
+        gameOverBackground.zPosition = 1
+        self.addChild(gameOverBackground)
         
-        // Display "Game Over" label
+        // Create "Game Over" label (smaller size, centered vertically)
         let gameOverLabel = SKLabelNode(fontNamed: "American Typewriter")
         gameOverLabel.text = "Game Over!"
-        gameOverLabel.fontSize = 40
-        gameOverLabel.fontColor = SKColor.red
-        gameOverLabel.position = CGPoint(x: frame.midX, y: frame.midY + 50)
-        addChild(gameOverLabel)
-        
-        // Create background for Play Again button
-        let playAgainBackground = SKSpriteNode(color: SKColor(red: 1.0, green: 0.85, blue: 0.2, alpha: 1.0), size: CGSize(width: 200, height: 50))
-        playAgainBackground.position = CGPoint(x: frame.midX, y: frame.midY - 30)
+        gameOverLabel.fontSize = 35
+        gameOverLabel.fontColor = SKColor.white
+        gameOverLabel.position = CGPoint(x: 0, y: -gameOverLabel.frame.height / 2)
+        gameOverLabel.horizontalAlignmentMode = .center
+        gameOverLabel.zPosition = 2
+        gameOverBackground.addChild(gameOverLabel)
+
+        // Add Play Again button with purple background
+        let playAgainBackground = SKSpriteNode(color: SKColor.purple, size: CGSize(width: 200, height: 50))
+        playAgainBackground.position = CGPoint(x: frame.midX, y: frame.midY - 10)  // Position adjusted
         playAgainBackground.name = "playAgainButton"
+        playAgainBackground.zPosition = 1
+        self.addChild(playAgainBackground)
         
-        // Create label for Play Again button
         let playAgainLabel = SKLabelNode(fontNamed: "American Typewriter")
         playAgainLabel.text = "Play Again"
         playAgainLabel.fontSize = 30
         playAgainLabel.fontColor = SKColor.white
         playAgainLabel.position = CGPoint(x: 0, y: -10)
-        
+        playAgainLabel.zPosition = 2
         playAgainBackground.addChild(playAgainLabel)
-        addChild(playAgainBackground)
         
-        // Create background for Exit button
+        // Add Exit button with blue background
         let exitBackground = SKSpriteNode(color: SKColor.blue, size: CGSize(width: 200, height: 50))
-        exitBackground.position = CGPoint(x: frame.midX, y: frame.midY - 80)
+        exitBackground.position = CGPoint(x: frame.midX, y: frame.midY - 60)  // Position adjusted
         exitBackground.name = "exitButton"
+        exitBackground.zPosition = 1
+        self.addChild(exitBackground)
         
-        // Create label for Exit button
         let exitLabel = SKLabelNode(fontNamed: "American Typewriter")
         exitLabel.text = "Exit"
         exitLabel.fontSize = 30
         exitLabel.fontColor = SKColor.white
         exitLabel.position = CGPoint(x: 0, y: -10)
-        
+        exitLabel.zPosition = 2
         exitBackground.addChild(exitLabel)
-        addChild(exitBackground)
     }
 
 
@@ -350,8 +369,12 @@ extension GameScene{
         // Calculate the new X position based on gravity.x
         let newXPosition = minion.position.x + CGFloat(gravity.x * 50)  // Adjust sensitivity here
         
+        // Adjust the padding
+        let leftPadding: CGFloat = 18
+        let rightPadding: CGFloat = 18
+            
         // Ensure the minion stays within the screen bounds
-        if newXPosition >= minion.size.width / 2 && newXPosition <= size.width - minion.size.width / 2 {
+        if newXPosition >= leftPadding && newXPosition <= size.width - rightPadding {
             minion.position.x = newXPosition
         }
         
@@ -378,7 +401,9 @@ extension GameScene{
                     let transition = SKTransition.fade(withDuration: 1.0)
                     self.view?.presentScene(newScene, transition: transition)
                 } else if node.name == "exitButton" {
-                    // Handle exit (you can customize the exit behavior)
+                    // Handle exit
+                    // FIX MEEEEEEE
+                    // want this exit button to go back to the step view
                     exit(0)  // This will close the app, replace as needed
                 }
             }
