@@ -15,10 +15,16 @@ class GameScene: SKScene {
     // MARK: Motion property
     let motion = CMMotionManager()
     
+    var previousPositionX: CGFloat = 0.0  // Track phone's previous position for smoothing
+    var filterFactor: CGFloat = 0.9  // Factor for low-pass filter
+    
+    // Track the current direction to apply flipping
+    var lastDirection: CGFloat = 0.0
+    
     // MARK: Create Sprites Functions
-    let platformBlock = SKSpriteNode()
-    let scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
-    var score:Int = 0 {
+    let minion = SKSpriteNode()
+    let scoreLabel = SKLabelNode(fontNamed: "American Typewriter")
+    var score: Int = 0 {
         willSet(newValue){
             DispatchQueue.main.async{
                 self.scoreLabel.text = "Score: \(newValue)"
@@ -30,187 +36,356 @@ class GameScene: SKScene {
     // this is like out "View Did Load" function
     override func didMove(to view: SKView) {
         
-        // delegate for the contact of objects
+        // Set the background image
+        let background = SKSpriteNode(imageNamed: "picnic-bg.jpg")
+        background.size = CGSize(width: self.size.width, height: self.size.height)
+        background.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
+        background.zPosition = -1  // Ensure the background is behind everything
+        self.addChild(background)
+        
+        // Set up physics world
         physicsWorld.contactDelegate = self
         
-        backgroundColor = SKColor.white
+        // Adjust gravity to make bananas/bombs fall slower
+        physicsWorld.gravity = CGVector(dx: 0.0, dy: -3.0)
         
-        // start motion for gravity
+        // Start motion updates for the minion
         self.startMotionUpdates()
         
-        // make sides to the screen
-        self.addSidesAndTop()
+        // Add the minion sprite
+        self.addMinion()
         
-        // add some stationary blocks on left and right
-        self.addStaticBlockAtPoint(CGPoint(x: size.width * 0.1, y: size.height * 0.25))
-        self.addStaticBlockAtPoint(CGPoint(x: size.width * 0.9, y: size.height * 0.25))
+        // Add the invisible ground
+        self.addGround()
         
-        // add a spinning block
-        self.addSpinningBlockAtPoint(CGPoint(x: size.width * 0.5, y: size.height * 0.35))
+        // Schedule bananas and bombs to fall
+        let dropItemAction = SKAction.repeatForever(SKAction.sequence([
+            SKAction.run {
+                let randomNumber = Int.random(in: 1...100)
+                if randomNumber <= 80 {
+                    self.addBanana()
+                } else {
+                    self.addBomb()
+                }
+            },
+            SKAction.wait(forDuration: 2.0)
+        ]))
+        self.run(dropItemAction)
         
-        // add in the interaction sprite
-        self.addSpriteBottle()
-        
-        // add a scorer
+        // Add score system
         self.addScore()
-        
-        // update a special watched property for score
         self.score = 0
     }
     
 
     
-    func addScore(){
+    // MARK: Add Score
+    func addScore() {
+        let scoreBackground = SKSpriteNode(color: SKColor.black, size: CGSize(width: 200, height: 50))
+        scoreBackground.position = CGPoint(x: frame.midX, y: frame.minY + 50)
+        scoreBackground.zPosition = 1
         
         scoreLabel.text = "Score: 0"
-        scoreLabel.fontSize = 20
-        scoreLabel.fontColor = SKColor.blue
-        // place score in middle of screen horizontally, and a littel above the minimum vertical
-        scoreLabel.position = CGPoint(x: frame.midX, y: frame.minY+20)
+        scoreLabel.fontSize = 30
+        scoreLabel.fontColor = SKColor.white
+        scoreLabel.position = CGPoint(x: 0, y: -10)
+        scoreLabel.zPosition = 2
         
-        addChild(scoreLabel)
+        scoreBackground.addChild(scoreLabel)
+        addChild(scoreBackground)
     }
-    
-    
-    func addSpriteBottle(){
-        let spriteA = SKSpriteNode(imageNamed: "sprite")
-        
-        spriteA.size = CGSize(width:size.width*0.1,
-                              height:size.height * 0.1)
-        
-        let randNumber = random(min: CGFloat(0.1), max: CGFloat(0.9))
-        spriteA.position = CGPoint(x: size.width * randNumber,
-                                   y: size.height * 0.75)
-        
-        spriteA.physicsBody = SKPhysicsBody(rectangleOf:spriteA.size)
-        spriteA.physicsBody?.restitution = random(min: CGFloat(1.0),
-                                                  max: CGFloat(1.5))
-        spriteA.physicsBody?.isDynamic = true
-        // for collision detection we need to setup these masks
-        spriteA.physicsBody?.contactTestBitMask = 0x00000001
-        spriteA.physicsBody?.collisionBitMask = 0x00000001
-        spriteA.physicsBody?.categoryBitMask = 0x00000001
-        
-        self.addChild(spriteA)
-    }
-    
-    func addSpinningBlockAtPoint(_ point:CGPoint){
-        
-        platformBlock.color = UIColor.red
-        platformBlock.size = CGSize(width:size.width*0.15,height:size.height * 0.05)
-        platformBlock.position = point
-        
-        
-        platformBlock.physicsBody = SKPhysicsBody(rectangleOf:platformBlock.size)
-        platformBlock.physicsBody?.contactTestBitMask = 0x00000001
-        platformBlock.physicsBody?.collisionBitMask = 0x00000001
-        platformBlock.physicsBody?.categoryBitMask = 0x00000001
-        platformBlock.physicsBody?.isDynamic = true
-        platformBlock.physicsBody?.pinned = false
-        platformBlock.physicsBody?.affectedByGravity = false
-        platformBlock.physicsBody?.mass = 100000
-        
-        self.addChild(platformBlock)
 
+    
+    func addBanana() {
+        let bananaTexture = SKTexture(imageNamed: "banana")
+
+        let aspectRatio = bananaTexture.size().height / bananaTexture.size().width
+        
+        let bananaWidth = size.width * 0.3  // Adjust width to 30% of screen width
+        let bananaHeight = bananaWidth * aspectRatio
+        
+        // Create banana sprite with correct aspect ratio
+        let banana = SKSpriteNode(texture: bananaTexture)
+        banana.size = CGSize(width: bananaWidth, height: bananaHeight)
+        
+        // Generate a random position at the top
+        let randomX = random(min: bananaWidth / 2, max: size.width - bananaWidth / 2)
+        banana.position = CGPoint(x: randomX, y: size.height * 0.9)  // Top of the screen
+                
+        // Set up the physics body for falling
+        banana.physicsBody = SKPhysicsBody(rectangleOf: banana.size)
+        banana.physicsBody?.restitution = 0.2  // Less bouncy for realism
+        banana.physicsBody?.isDynamic = true
+        banana.physicsBody?.contactTestBitMask = 0x00000001
+        banana.physicsBody?.collisionBitMask = 0x00000001
+        banana.physicsBody?.categoryBitMask = 0x00000001
+        banana.name = "banana"
+        
+        self.addChild(banana)
+    }
+
+
+    
+    func addBomb() {
+        let bombTexture = SKTexture(imageNamed: "bomb")
+
+        let aspectRatio = bombTexture.size().height / bombTexture.size().width
+            
+        let bombWidth = size.width * 0.2  // Adjust width to 20% of screen width
+        let bombHeight = bombWidth * aspectRatio
+            
+        // Create bomb sprite with correct aspect ratio
+        let bomb = SKSpriteNode(texture: bombTexture)
+        bomb.size = CGSize(width: bombWidth, height: bombHeight)
+            
+        // Generate random position at the top
+        let randomX = random(min: bombWidth / 2, max: size.width - bombWidth / 2)
+        bomb.position = CGPoint(x: randomX, y: size.height * 0.9)  // Top of the screen
+                    
+        // Set up the physics body for falling
+        bomb.physicsBody = SKPhysicsBody(rectangleOf: bomb.size)
+        bomb.physicsBody?.restitution = 0.2
+        bomb.physicsBody?.isDynamic = true
+        bomb.physicsBody?.contactTestBitMask = 0x00000001
+        bomb.physicsBody?.collisionBitMask = 0x00000001
+        bomb.physicsBody?.categoryBitMask = 0x00000002
+        bomb.name = "bomb"
+            
+        self.addChild(bomb)
+    }
+
+
+
+    
+    // MARK: Add Minion
+    func addMinion() {
+        let minionTexture = SKTexture(imageNamed: "minion")
+        let aspectRatio = minionTexture.size().height / minionTexture.size().width
+        
+        let minionWidth = size.width * 0.4
+        let minionHeight = minionWidth * aspectRatio
+        
+        minion.size = CGSize(width: minionWidth, height: minionHeight)
+        minion.texture = minionTexture
+        minion.position = CGPoint(x: size.width * 0.5, y: size.height * 0.2)
+        
+        minion.physicsBody = SKPhysicsBody(rectangleOf: minion.size)
+        minion.physicsBody?.isDynamic = false
+        minion.physicsBody?.affectedByGravity = false
+        minion.physicsBody?.allowsRotation = false
+        minion.physicsBody?.contactTestBitMask = 0x00000001
+        minion.physicsBody?.collisionBitMask = 0x00000001
+        minion.physicsBody?.categoryBitMask = 0x00000001
+        minion.name = "minion"
+        
+        self.addChild(minion)
     }
     
-    func addStaticBlockAtPoint(_ point:CGPoint){
-        let 🔲 = SKSpriteNode()
+    // create invisible ground to detect when a banana is missed
+    // deduct points if a banana collides with ground
+    func addGround() {
+        let ground = SKSpriteNode(color: .clear, size: CGSize(width: size.width, height: 10))
+        ground.position = CGPoint(x: size.width / 2, y: 0)  // Positioned at the bottom of the screen
+        ground.physicsBody = SKPhysicsBody(rectangleOf: ground.size)
+        ground.physicsBody?.isDynamic = false
+        ground.physicsBody?.categoryBitMask = 0x00000004
+        ground.physicsBody?.contactTestBitMask = 0x00000001
+        ground.name = "ground"
         
-        🔲.color = UIColor.red
-        🔲.size = CGSize(width:size.width*0.1,height:size.height * 0.05)
-        🔲.position = point
-        
-        🔲.physicsBody = SKPhysicsBody(rectangleOf:🔲.size)
-        🔲.physicsBody?.isDynamic = true
-        🔲.physicsBody?.pinned = true
-        🔲.physicsBody?.allowsRotation = true
-        
-        self.addChild(🔲)
-        
+        self.addChild(ground)
     }
     
-    func addSidesAndTop(){
-        let left = SKSpriteNode()
-        let right = SKSpriteNode()
-        let top = SKSpriteNode()
-        
-        left.size = CGSize(width:size.width*0.1,height:size.height)
-        left.position = CGPoint(x:0, y:size.height*0.5)
-        
-        right.size = CGSize(width:size.width*0.1,height:size.height)
-        right.position = CGPoint(x:size.width, y:size.height*0.5)
-        
-        top.size = CGSize(width:size.width,height:size.height*0.1)
-        top.position = CGPoint(x:size.width*0.5, y:size.height)
-        
-        for obj in [left,right,top]{
-            obj.color = UIColor.red
-            obj.physicsBody = SKPhysicsBody(rectangleOf:obj.size)
-            obj.physicsBody?.isDynamic = true
-            obj.physicsBody?.pinned = true
-            obj.physicsBody?.allowsRotation = false
-            self.addChild(obj)
+    func checkWinCondition() {
+        if self.score >= 10 {
+            self.winGame()
         }
     }
+    
+    func winGame() {
+        // Stop all actions
+        self.removeAllActions()
+        
+        // Stop minion movement by stopping motion updates
+        self.motion.stopDeviceMotionUpdates()
+        
+        // Display "You Win" label with a brighter yellow color
+        let winLabel = SKLabelNode(fontNamed: "American Typewriter")
+        winLabel.text = "You Win!"
+        winLabel.fontSize = 40
+        winLabel.fontColor = SKColor(red: 1.0, green: 0.85, blue: 0.2, alpha: 1.0) // Brighter yellow color
+        winLabel.position = CGPoint(x: frame.midX, y: frame.midY + 50)
+        addChild(winLabel)
+        
+        // Create background for Play Again button with brighter yellow color
+        let playAgainBackground = SKSpriteNode(color: SKColor(red: 1.0, green: 0.85, blue: 0.2, alpha: 1.0), size: CGSize(width: 200, height: 50))
+        playAgainBackground.position = CGPoint(x: frame.midX, y: frame.midY - 30)
+        playAgainBackground.name = "playAgainButton"
+        
+        // Create label for Play Again button
+        let playAgainLabel = SKLabelNode(fontNamed: "American Typewriter")
+        playAgainLabel.text = "Play Again"
+        playAgainLabel.fontSize = 30
+        playAgainLabel.fontColor = SKColor.white
+        playAgainLabel.position = CGPoint(x: 0, y: -10)
+        
+        playAgainBackground.addChild(playAgainLabel)
+        addChild(playAgainBackground)
+        
+        // Create background for Exit button with a blue color (you can adjust this too if needed)
+        let exitBackground = SKSpriteNode(color: SKColor.blue, size: CGSize(width: 200, height: 50))
+        exitBackground.position = CGPoint(x: frame.midX, y: frame.midY - 80)
+        exitBackground.name = "exitButton"
+        
+        // Create label for Exit button
+        let exitLabel = SKLabelNode(fontNamed: "American Typewriter")
+        exitLabel.text = "Exit"
+        exitLabel.fontSize = 30
+        exitLabel.fontColor = SKColor.white
+        exitLabel.position = CGPoint(x: 0, y: -10)
+        
+        exitBackground.addChild(exitLabel)
+        addChild(exitBackground)
+    }
+
+
+    
+    func checkGameOver() {
+        if self.score < 0 {
+            self.gameOver()
+        }
+    }
+    
+    func gameOver() {
+        // Stop all actions
+        self.removeAllActions()
+        
+        // Stop minion movement by stopping motion updates
+        self.motion.stopDeviceMotionUpdates()
+        
+        // Display "Game Over" label
+        let gameOverLabel = SKLabelNode(fontNamed: "American Typewriter")
+        gameOverLabel.text = "Game Over!"
+        gameOverLabel.fontSize = 40
+        gameOverLabel.fontColor = SKColor.red
+        gameOverLabel.position = CGPoint(x: frame.midX, y: frame.midY + 50)
+        addChild(gameOverLabel)
+        
+        // Create background for Play Again button
+        let playAgainBackground = SKSpriteNode(color: SKColor(red: 1.0, green: 0.85, blue: 0.2, alpha: 1.0), size: CGSize(width: 200, height: 50))
+        playAgainBackground.position = CGPoint(x: frame.midX, y: frame.midY - 30)
+        playAgainBackground.name = "playAgainButton"
+        
+        // Create label for Play Again button
+        let playAgainLabel = SKLabelNode(fontNamed: "American Typewriter")
+        playAgainLabel.text = "Play Again"
+        playAgainLabel.fontSize = 30
+        playAgainLabel.fontColor = SKColor.white
+        playAgainLabel.position = CGPoint(x: 0, y: -10)
+        
+        playAgainBackground.addChild(playAgainLabel)
+        addChild(playAgainBackground)
+        
+        // Create background for Exit button
+        let exitBackground = SKSpriteNode(color: SKColor.blue, size: CGSize(width: 200, height: 50))
+        exitBackground.position = CGPoint(x: frame.midX, y: frame.midY - 80)
+        exitBackground.name = "exitButton"
+        
+        // Create label for Exit button
+        let exitLabel = SKLabelNode(fontNamed: "American Typewriter")
+        exitLabel.text = "Exit"
+        exitLabel.fontSize = 30
+        exitLabel.fontColor = SKColor.white
+        exitLabel.position = CGPoint(x: 0, y: -10)
+        
+        exitBackground.addChild(exitLabel)
+        addChild(exitBackground)
+    }
+
+
     
 }
 
 
-extension GameScene: SKPhysicsContactDelegate{
+// MARK: - SKPhysicsContactDelegate
+extension GameScene: SKPhysicsContactDelegate {
     
-    
-    // here is an inherited function from SKScene
-    // this is called ANYTIME someone lifts a touch from the screen
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        self.addSpriteBottle()
-    }
-    
-    // MARK: ===== Contact Delegate Functions=====
     func didBegin(_ contact: SKPhysicsContact) {
-        // if anything interacts with the spin Block, then we should update the score
-        if contact.bodyA.node == platformBlock || contact.bodyB.node == platformBlock {
+        if (contact.bodyA.node?.name == "banana" && contact.bodyB.node?.name == "minion") ||
+           (contact.bodyA.node?.name == "minion" && contact.bodyB.node?.name == "banana") {
             self.score += 1
+            if contact.bodyA.node?.name == "banana" {
+                contact.bodyA.node?.removeFromParent()
+            } else if contact.bodyB.node?.name == "banana" {
+                contact.bodyB.node?.removeFromParent()
+            }
+            self.checkWinCondition()
         }
         
-        // TODO: How might we add additional scoring mechanisms?
+        if (contact.bodyA.node?.name == "bomb" && contact.bodyB.node?.name == "minion") ||
+           (contact.bodyA.node?.name == "minion" && contact.bodyB.node?.name == "bomb") {
+            if contact.bodyA.node?.name == "bomb" {
+                contact.bodyA.node?.removeFromParent()
+            } else if contact.bodyB.node?.name == "bomb" {
+                contact.bodyB.node?.removeFromParent()
+            }
+            self.gameOver()
+        }
     }
 }
 
 
 extension GameScene{
     // MARK: Raw Motion Functions
-    func startMotionUpdates(){
-        // if motion is available, start updating the device motion
-        if self.motion.isDeviceMotionAvailable{
-            self.motion.deviceMotionUpdateInterval = 0.2
-            self.motion.startDeviceMotionUpdates(to: OperationQueue.main, withHandler: self.handleMotion )
+    func startMotionUpdates() {
+        if self.motion.isDeviceMotionAvailable {
+            self.motion.deviceMotionUpdateInterval = 0.02
+            self.motion.startDeviceMotionUpdates(to: OperationQueue.main, withHandler: self.handleMotion)
         }
     }
     
-    func handleMotion(_ motionData:CMDeviceMotion?, error:Error?){
-        // make gravity in the game als the simulator gravity
-        if let gravity = motionData?.gravity {
-            self.physicsWorld.gravity = CGVector(dx: CGFloat(9.8*gravity.x), dy: CGFloat(9.8*gravity.y))
+    // Handle the motion data for left-right movement
+    func handleMotion(_ motionData: CMDeviceMotion?, error: Error?) {
+        guard let gravity = motionData?.gravity else { return }
+        
+        // Calculate the new X position based on gravity.x
+        let newXPosition = minion.position.x + CGFloat(gravity.x * 50)  // Adjust sensitivity here
+        
+        // Ensure the minion stays within the screen bounds
+        if newXPosition >= minion.size.width / 2 && newXPosition <= size.width - minion.size.width / 2 {
+            minion.position.x = newXPosition
         }
         
-        
-        // BONUS: using the acceleration to update node positions
-        // Is this a good idea to do? Is it Easy to control?
-        if let userAccel = motionData?.userAcceleration{
-            
-            
-            if (platformBlock.position.x < 0 && userAccel.x < 0) || (platformBlock.position.x > self.size.width && userAccel.x > 0)
-            {
-                // do not update the position
-                return
-            }
-            let action = SKAction.moveBy(x: userAccel.x*100, y: 0, duration: 0.1)
-            self.platformBlock.run(action, withKey: "temp")
-            // TODO: as a class, make these into buttons
-
+        // Flip the minion image based on the tilt direction
+        if gravity.x > 0 && lastDirection <= 0 {
+            minion.xScale = -1 // Flip horizontally when moving right
+            lastDirection = gravity.x
+        } else if gravity.x < 0 && lastDirection >= 0 {
+            minion.xScale = 1 // Flip back when moving left
+            lastDirection = gravity.x
         }
     }
+
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let location = touch.location(in: self)
+            let nodesAtPoint = self.nodes(at: location)
+            
+            for node in nodesAtPoint {
+                if node.name == "playAgainButton" {
+                    // Restart game by presenting a new scene
+                    let newScene = GameScene(size: self.size)
+                    let transition = SKTransition.fade(withDuration: 1.0)
+                    self.view?.presentScene(newScene, transition: transition)
+                } else if node.name == "exitButton" {
+                    // Handle exit (you can customize the exit behavior)
+                    exit(0)  // This will close the app, replace as needed
+                }
+            }
+        }
+    }
+
+
     
     // MARK: Utility Functions (thanks ray wenderlich!)
     // generate some random numbers for cor graphics floats
@@ -222,3 +397,4 @@ extension GameScene{
         return random() * (max - min) + min
     }
 }
+
