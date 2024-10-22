@@ -329,17 +329,31 @@ class GameScene: SKScene {
 extension GameScene: SKPhysicsContactDelegate {
     
     func didBegin(_ contact: SKPhysicsContact) {
+        // Handle banana and minion collision (banana caught)
         if (contact.bodyA.node?.name == "banana" && contact.bodyB.node?.name == "minion") ||
            (contact.bodyA.node?.name == "minion" && contact.bodyB.node?.name == "banana") {
-            self.score += 1
+            self.score += 1  // Increment score when banana is caught
             if contact.bodyA.node?.name == "banana" {
                 contact.bodyA.node?.removeFromParent()
             } else if contact.bodyB.node?.name == "banana" {
                 contact.bodyB.node?.removeFromParent()
             }
-            self.checkWinCondition()
+            self.checkWinCondition()  // Check win condition after catching a banana
         }
         
+        // Handle banana hitting the ground (banana missed)
+        if (contact.bodyA.node?.name == "banana" && contact.bodyB.node?.name == "ground") ||
+           (contact.bodyA.node?.name == "ground" && contact.bodyB.node?.name == "banana") {
+            self.score -= 1  // Decrement score when banana hits the ground (missed)
+            if contact.bodyA.node?.name == "banana" {
+                contact.bodyA.node?.removeFromParent()
+            } else if contact.bodyB.node?.name == "banana" {
+                contact.bodyB.node?.removeFromParent()
+            }
+            self.checkGameOver()  // Check if game over condition is met after losing a point
+        }
+        
+        // Handle bomb and minion collision (bomb hit)
         if (contact.bodyA.node?.name == "bomb" && contact.bodyB.node?.name == "minion") ||
            (contact.bodyA.node?.name == "minion" && contact.bodyB.node?.name == "bomb") {
             if contact.bodyA.node?.name == "bomb" {
@@ -347,9 +361,10 @@ extension GameScene: SKPhysicsContactDelegate {
             } else if contact.bodyB.node?.name == "bomb" {
                 contact.bodyB.node?.removeFromParent()
             }
-            self.gameOver()
+            self.gameOver()  // Trigger game over when a bomb hits the minion
         }
     }
+
 }
 
 
