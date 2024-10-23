@@ -19,64 +19,102 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Today: 0" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mju-K5-mlj">
-                                <rect key="frame" x="31" y="101" width="321" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Today's Steps: 0" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mju-K5-mlj">
+                                <rect key="frame" x="36" y="554" width="264" height="22"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="18"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Yesterday: fetching data..." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EbG-5Q-BCQ">
-                                <rect key="frame" x="31" y="130" width="321" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Yesterday's Steps: fetching data..." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="EbG-5Q-BCQ">
+                                <rect key="frame" x="36" y="597" width="325" height="22"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="18"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Goal: set a step goal!" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="0aI-4M-gEQ">
-                                <rect key="frame" x="31" y="159" width="321" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Daily Goal: set a step goal!" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="0aI-4M-gEQ">
+                                <rect key="frame" x="62.666666666666657" y="124" width="268" height="28"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="23"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Remaining: 0" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JLv-u7-eEA">
-                                <rect key="frame" x="31" y="188" width="321" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Minion Step Tracker" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FZY-DG-oRO">
+                                <rect key="frame" x="57.666666666666657" y="73" width="278" height="37"/>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="31"/>
+                                <color key="textColor" red="1" green="0.9952172547" blue="0.1145301205" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Steps Remaining: 0" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JLv-u7-eEA">
+                                <rect key="frame" x="36" y="637" width="160" height="22"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="18"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Current Activity: Unknown" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1w8-SY-cgH">
-                                <rect key="frame" x="31" y="217" width="199" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Current Activity: Unknown" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1w8-SY-cgH">
+                                <rect key="frame" x="36.000000000000014" y="681" width="216.33333333333337" height="21"/>
+                                <fontDescription key="fontDescription" type="system" weight="medium" pointSize="18"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YnF-CU-BNF">
-                                <rect key="frame" x="132" y="257" width="129" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YnF-CU-BNF">
+                                <rect key="frame" x="124.66666666666669" y="177" width="144" height="37"/>
+                                <color key="tintColor" red="0.97867120111111516" green="0.31907464728788576" blue="0.24705777873298923" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="Set Step Goal"/>
+                                <buttonConfiguration key="configuration" style="tinted" title="Set Step Goal">
+                                    <fontDescription key="titleFontDescription" type="system" weight="semibold" pointSize="19"/>
+                                </buttonConfiguration>
                                 <connections>
                                     <action selector="setGoalPressed:" destination="f3o-14-sZA" eventType="touchUpInside" id="Amt-gU-SYE"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QSS-Fb-as2">
-                                <rect key="frame" x="144" y="736" width="105" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jXm-lw-bJW">
+                                <rect key="frame" x="93" y="368" width="207" height="117"/>
+                                <string key="text">Time
+until goal reset</string>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="22"/>
+                                <color key="textColor" red="1" green="0.9952172547" blue="0.1145301205" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IPz-D7-22o">
+                                <rect key="frame" x="109.66666666666669" y="730" width="174" height="51"/>
+                                <color key="tintColor" red="1" green="0.9952172547" blue="0.1145301205" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="Play Game"/>
+                                <buttonConfiguration key="configuration" style="tinted" title="Play Game">
+                                    <fontDescription key="titleFontDescription" type="system" weight="semibold" pointSize="31"/>
+                                </buttonConfiguration>
+                                <connections>
+                                    <action selector="playGameButtonPressed:" destination="f3o-14-sZA" eventType="touchUpInside" id="lXA-eb-ahO"/>
+                                    <segue destination="uAs-2Q-GOu" kind="show" identifier="gameSegue" id="5Vf-Ie-3wO"/>
+                                </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="1w8-SY-cgH" firstAttribute="top" secondItem="JLv-u7-eEA" secondAttribute="bottom" constant="22" id="76O-Rb-CnD"/>
+                            <constraint firstItem="0aI-4M-gEQ" firstAttribute="top" secondItem="FZY-DG-oRO" secondAttribute="bottom" constant="14" id="BrP-gp-PAs"/>
+                            <constraint firstItem="jXm-lw-bJW" firstAttribute="centerY" secondItem="Dqn-yi-A9y" secondAttribute="centerY" id="CJE-0p-73F"/>
+                            <constraint firstItem="IPz-D7-22o" firstAttribute="centerX" secondItem="Dqn-yi-A9y" secondAttribute="centerX" id="DaO-lc-0wh"/>
+                            <constraint firstItem="0aI-4M-gEQ" firstAttribute="centerX" secondItem="Dqn-yi-A9y" secondAttribute="centerX" id="E0d-TP-SRT"/>
+                            <constraint firstItem="YnF-CU-BNF" firstAttribute="centerX" secondItem="Dqn-yi-A9y" secondAttribute="centerX" id="FHE-4O-3xU"/>
+                            <constraint firstItem="JLv-u7-eEA" firstAttribute="top" secondItem="EbG-5Q-BCQ" secondAttribute="bottom" constant="19" id="Q54-rJ-QQQ"/>
+                            <constraint firstItem="IPz-D7-22o" firstAttribute="top" secondItem="1w8-SY-cgH" secondAttribute="bottom" constant="28" id="RfJ-q3-qmJ"/>
+                            <constraint firstItem="JLv-u7-eEA" firstAttribute="leading" secondItem="Dqn-yi-A9y" secondAttribute="leadingMargin" constant="20" id="XCD-Dv-2Aj"/>
+                            <constraint firstItem="1w8-SY-cgH" firstAttribute="leading" secondItem="Dqn-yi-A9y" secondAttribute="leadingMargin" constant="20" id="XoU-Nd-zYd"/>
+                            <constraint firstItem="jXm-lw-bJW" firstAttribute="centerX" secondItem="Dqn-yi-A9y" secondAttribute="centerX" id="b2M-7k-w2x"/>
+                            <constraint firstItem="mju-K5-mlj" firstAttribute="leading" secondItem="Dqn-yi-A9y" secondAttribute="leadingMargin" constant="20" id="eWT-Sw-Bk4"/>
+                            <constraint firstItem="NPC-Y2-y1h" firstAttribute="top" secondItem="IPz-D7-22o" secondAttribute="bottom" constant="37" id="gxi-bs-LIj"/>
+                            <constraint firstItem="FZY-DG-oRO" firstAttribute="centerX" secondItem="Dqn-yi-A9y" secondAttribute="centerX" id="hvw-qh-xfh"/>
+                            <constraint firstItem="YnF-CU-BNF" firstAttribute="top" secondItem="0aI-4M-gEQ" secondAttribute="bottom" constant="25" id="o29-sQ-xkN"/>
+                            <constraint firstItem="EbG-5Q-BCQ" firstAttribute="leading" secondItem="Dqn-yi-A9y" secondAttribute="leadingMargin" constant="20" id="sWJ-bs-uHp"/>
+                            <constraint firstItem="EbG-5Q-BCQ" firstAttribute="top" secondItem="mju-K5-mlj" secondAttribute="bottom" constant="22" id="v9T-lh-opp"/>
+                            <constraint firstItem="FZY-DG-oRO" firstAttribute="top" secondItem="Dqn-yi-A9y" secondAttribute="top" constant="73" id="yXA-O4-fDx"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="WqS-2X-Bqw"/>
                     <connections>
                         <outlet property="activityLabel" destination="1w8-SY-cgH" id="dGc-EH-DlO"/>
                         <outlet property="goalStepsLabel" destination="0aI-4M-gEQ" id="ehU-W4-Ulv"/>
                         <outlet property="remainingStepsLabel" destination="JLv-u7-eEA" id="o5F-Rv-KeB"/>
+                        <outlet property="timeUntilResetLabel" destination="jXm-lw-bJW" id="AP8-2U-XEd"/>
                         <outlet property="todayStepsLabel" destination="mju-K5-mlj" id="0uM-sG-0nO"/>
                         <outlet property="yesterdayStepsLabel" destination="EbG-5Q-BCQ" id="SpO-Ab-U3f"/>
                     </connections>
@@ -98,6 +136,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </view>
+                    <navigationItem key="navigationItem" id="GIi-BY-J75"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EJd-XG-b1a" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>

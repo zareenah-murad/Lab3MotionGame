@@ -17,7 +17,7 @@ class MotionModel {
     
     // MARK: =====Class Variables=====
     private let activityManager = CMMotionActivityManager()
-    private let pedometer = CMPedometer()
+    let pedometer = CMPedometer() //changed to public
     var delegate: MotionDelegate? = nil
     
     // MARK: =====Motion Methods=====
