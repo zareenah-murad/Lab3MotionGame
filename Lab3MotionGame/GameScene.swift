@@ -192,7 +192,7 @@ class GameScene: SKScene {
         self.isPaused = true // Pause the game
         
         // Lower the background music volume to 30% of the original level
-        backgroundMusicPlayer?.setVolume(0.3, fadeDuration: 1.0)
+        backgroundMusicPlayer?.setVolume(0.1, fadeDuration: 1.0)
         
         // Stop motion updates so minion doesn't move while paused
         self.motion.stopDeviceMotionUpdates()
@@ -205,10 +205,20 @@ class GameScene: SKScene {
         grayOverlay.zPosition = 50 // Make sure it's above everything else
         addChild(grayOverlay)
         
+        // Button sizes and spacing
+        let buttonWidth: CGFloat = 200
+        let buttonHeight: CGFloat = 50
+        let buttonSpacing: CGFloat = 80  // Increased distance between each button
+        
+        // Calculate the Y positions for the buttons, centered with increased spacing
+        let resumeYPosition = size.height / 2 + buttonSpacing
+        let startOverYPosition = size.height / 2
+        let exitYPosition = size.height / 2 - buttonSpacing
+        
         // Add "Resume" button (green)
-        let resumeButton = SKShapeNode(rectOf: CGSize(width: 200, height: 50), cornerRadius: 20)
+        let resumeButton = SKShapeNode(rectOf: CGSize(width: buttonWidth, height: buttonHeight), cornerRadius: 20)
         resumeButton.fillColor = SKColor.green
-        resumeButton.position = CGPoint(x: size.width / 2, y: size.height * 0.5)
+        resumeButton.position = CGPoint(x: size.width / 2, y: resumeYPosition)
         resumeButton.name = "resumeButton"
         resumeButton.zPosition = 51
         addChild(resumeButton)
@@ -222,9 +232,9 @@ class GameScene: SKScene {
         resumeButton.addChild(resumeLabel)
         
         // Add "Start Over" button (yellow)
-        let startOverButton = SKShapeNode(rectOf: CGSize(width: 200, height: 50), cornerRadius: 20)
+        let startOverButton = SKShapeNode(rectOf: CGSize(width: buttonWidth, height: buttonHeight), cornerRadius: 20)
         startOverButton.fillColor = SKColor(red: 1.0, green: 0.85, blue: 0.2, alpha: 1.0) // Yellow color
-        startOverButton.position = CGPoint(x: size.width / 2, y: size.height * 0.4)
+        startOverButton.position = CGPoint(x: size.width / 2, y: startOverYPosition)
         startOverButton.name = "startOverButton"
         startOverButton.zPosition = 51
         addChild(startOverButton)
@@ -236,7 +246,26 @@ class GameScene: SKScene {
         startOverLabel.position = CGPoint(x: 0, y: -10)
         startOverLabel.zPosition = 52
         startOverButton.addChild(startOverLabel)
+        
+        // Add "Exit" button (blue, same as gameOver and winGame screens)
+        let exitBackground = SKShapeNode(rectOf: CGSize(width: buttonWidth, height: buttonHeight), cornerRadius: 20)
+        exitBackground.fillColor = SKColor.blue
+        exitBackground.position = CGPoint(x: size.width / 2, y: exitYPosition)
+        exitBackground.name = "exitButton"
+        exitBackground.zPosition = 51
+        addChild(exitBackground)
+        
+        let exitLabel = SKLabelNode(fontNamed: "American Typewriter")
+        exitLabel.text = "Exit"
+        exitLabel.fontSize = 30
+        exitLabel.fontColor = SKColor.white
+        exitLabel.position = CGPoint(x: 0, y: -10)
+        exitLabel.zPosition = 52
+        exitBackground.addChild(exitLabel)
     }
+
+
+
 
 
     // MARK: Resume Game
@@ -245,7 +274,7 @@ class GameScene: SKScene {
         self.isPaused = false // Resume the game
         
         // Restore the background music volume to its original level (100%)
-        backgroundMusicPlayer?.setVolume(1.0, fadeDuration: 1.0)
+        backgroundMusicPlayer?.setVolume(0.3, fadeDuration: 1.0)
 
         // Start motion updates again for the minion movement
         self.startMotionUpdates()
@@ -254,6 +283,7 @@ class GameScene: SKScene {
         self.childNode(withName: "grayOverlay")?.removeFromParent()
         self.childNode(withName: "resumeButton")?.removeFromParent()
         self.childNode(withName: "startOverButton")?.removeFromParent()
+        self.childNode(withName: "exitButton")?.removeFromParent()
     }
 
 
@@ -705,15 +735,20 @@ extension GameScene {
                 
                 // Handle the "Exit" button to go back to the previous view
                 if node.name == "exitButton" {
+                    // Stop the background music before exiting
+                    stopBackgroundMusic()
+
+                    // Navigate back in a navigation controller if exists, else dismiss the view controller
                     if let viewController = self.view?.window?.rootViewController as? UINavigationController {
-                        viewController.popViewController(animated: true) // Navigate back in a navigation controller
+                        viewController.popViewController(animated: true)
                     } else {
-                        self.view?.window?.rootViewController?.dismiss(animated: true, completion: nil) // Dismiss modally presented view controller
+                        self.view?.window?.rootViewController?.dismiss(animated: true, completion: nil)
                     }
                 }
             }
         }
     }
+
     
     // MARK: Sound Effects!
     func playSound(named soundFileName: String) {
