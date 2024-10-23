@@ -25,6 +25,9 @@ class GameScene: SKScene {
     // Track the current direction to apply flipping
     var lastDirection: CGFloat = 0.0
     
+    // Track which banana sound to play
+    var isFirstSound = true
+    
     // MARK: Create Sprites Functions
     let minion = SKSpriteNode()
     let scoreLabel = SKLabelNode(fontNamed: "American Typewriter")
@@ -62,16 +65,18 @@ class GameScene: SKScene {
     
     // MARK: Play Background Music
     func playBackgroundMusic() {
-        if let musicURL = Bundle.main.url(forResource: "Wii Music - Gaming Background Music (HD)", withExtension: "mp3") { // Replace "yourMusicFile" with the name of your audio file
+        if let musicURL = Bundle.main.url(forResource: "Wii Music - Gaming Background Music (HD)", withExtension: "mp3") {
             do {
                 backgroundMusicPlayer = try AVAudioPlayer(contentsOf: musicURL)
-                backgroundMusicPlayer?.numberOfLoops = -1  // Infinite loop
+                backgroundMusicPlayer?.numberOfLoops = -1  // Loop indefinitely
+                backgroundMusicPlayer?.volume = 0.3  // Set the volume to 30%
                 backgroundMusicPlayer?.play()
             } catch {
                 print("Error loading background music: \(error)")
             }
         }
     }
+
     
     // MARK: Stop Background Music
     func stopBackgroundMusic() {
@@ -162,7 +167,7 @@ class GameScene: SKScene {
         let dropItemAction = SKAction.repeatForever(SKAction.sequence([
             SKAction.run {
                 let randomNumber = Int.random(in: 1...100)
-                if randomNumber <= 80 {
+                if randomNumber <= 70 {
                     self.addBanana()
                 } else {
                     self.addBomb()
@@ -363,6 +368,10 @@ class GameScene: SKScene {
         minion.texture = minionTexture
         minion.position = CGPoint(x: size.width * 0.5, y: size.height * 0.2)
         
+        // Use a custom physics body with a narrower width and a slightly taller height
+        let physicsBodyWidth = minion.size.width * 0.6  // Even narrower
+        let physicsBodyHeight = minion.size.height * 1.1  // Slightly taller to detect collisions earlier
+        
         minion.physicsBody = SKPhysicsBody(rectangleOf: minion.size)
         minion.physicsBody?.isDynamic = false
         minion.physicsBody?.affectedByGravity = false
@@ -389,6 +398,44 @@ class GameScene: SKScene {
         self.addChild(ground)
     }
     
+    
+    func displayMessage(_ message: String) {
+        // Create a background label
+        let messageBackground = SKSpriteNode(color: SKColor.lightGray, size: CGSize(width: 300, height: 50))
+        messageBackground.position = CGPoint(x: frame.midX, y: frame.midY + 200)
+        messageBackground.zPosition = 1
+        addChild(messageBackground)
+        
+        // Create a label for the message
+        let messageLabel = SKLabelNode(fontNamed: "American Typewriter")
+        messageLabel.text = message
+        messageLabel.fontSize = 24
+        messageLabel.fontColor = SKColor.white
+        messageLabel.position = CGPoint(x: 0, y: -messageLabel.frame.height / 2)  // Center it vertically within the background
+        messageLabel.horizontalAlignmentMode = .center  // Ensure text is centered horizontally
+        messageLabel.zPosition = 2
+        messageBackground.addChild(messageLabel)
+        
+        // Add fade out effect and remove from parent after fade
+        let fadeOutAction = SKAction.fadeOut(withDuration: 2.0)
+        let removeAction = SKAction.removeFromParent()
+        let sequence = SKAction.sequence([fadeOutAction, removeAction])
+        
+        messageBackground.run(sequence)
+    }
+
+    func playAlternateCatchSound() {
+        if isFirstSound {
+            playSound(named: "catchBanana.mp3")
+        } else {
+            playSound(named: "catchBanana2.mp3")
+        }
+        
+        // Toggle the boolean for the next time
+        isFirstSound.toggle()
+    }
+
+    
     func checkWinCondition() {
         if self.score >= 10 {
             self.winGame()
@@ -404,27 +451,38 @@ class GameScene: SKScene {
         
         // Stop background music
         stopBackgroundMusic()
+        
+        // play winning sound
+        playSound(named: "youWin.mp3")
 
         // Remove the pause button
         self.pauseButton.removeFromParent()
 
-        // Display "You Win" label with a brighter yellow color
+        // Create white background for "You Win" label
+        let winLabelBackground = SKShapeNode(rectOf: CGSize(width: 250, height: 100), cornerRadius: 10)
+        winLabelBackground.fillColor = SKColor.white
+        winLabelBackground.position = CGPoint(x: frame.midX, y: frame.midY + 50)
+        winLabelBackground.zPosition = 1
+        addChild(winLabelBackground)
+        
+        // Create "You Win" label
         let winLabel = SKLabelNode(fontNamed: "American Typewriter")
         winLabel.text = "You Win!"
         winLabel.fontSize = 40
-        winLabel.fontColor = SKColor(red: 1.0, green: 0.85, blue: 0.2, alpha: 1.0) // Brighter yellow color
-        winLabel.position = CGPoint(x: frame.midX, y: frame.midY + 50)
-        addChild(winLabel)
+        winLabel.fontColor = SKColor.green
+        winLabel.position = CGPoint(x: 0, y: -winLabel.frame.height / 2)  // Center it vertically
+        winLabel.horizontalAlignmentMode = .center
+        winLabel.zPosition = 2
+        winLabelBackground.addChild(winLabel)
         
-        // Create background for Play Again button with rounded corners
+        // Create background for Play Again button
         let playAgainBackground = SKShapeNode(rectOf: CGSize(width: 200, height: 50), cornerRadius: 20)
         playAgainBackground.fillColor = SKColor(red: 1.0, green: 0.85, blue: 0.2, alpha: 1.0) // Yellow color
-        playAgainBackground.position = CGPoint(x: frame.midX, y: frame.midY - 40) // Adjusted position for spacing
+        playAgainBackground.position = CGPoint(x: frame.midX, y: frame.midY - 40)
         playAgainBackground.name = "playAgainButton"
         playAgainBackground.zPosition = 10
         addChild(playAgainBackground)
         
-        // Create label for Play Again button
         let playAgainLabel = SKLabelNode(fontNamed: "American Typewriter")
         playAgainLabel.text = "Play Again"
         playAgainLabel.fontSize = 30
@@ -433,15 +491,14 @@ class GameScene: SKScene {
         playAgainLabel.zPosition = 11
         playAgainBackground.addChild(playAgainLabel)
         
-        // Create background for Exit button with rounded corners
+        // Create background for Exit button
         let exitBackground = SKShapeNode(rectOf: CGSize(width: 200, height: 50), cornerRadius: 20)
         exitBackground.fillColor = SKColor.blue
-        exitBackground.position = CGPoint(x: frame.midX, y: frame.midY - 100) // Adjusted position for spacing
+        exitBackground.position = CGPoint(x: frame.midX, y: frame.midY - 100)
         exitBackground.name = "exitButton"
         exitBackground.zPosition = 10
         addChild(exitBackground)
         
-        // Create label for Exit button
         let exitLabel = SKLabelNode(fontNamed: "American Typewriter")
         exitLabel.text = "Exit"
         exitLabel.fontSize = 30
@@ -450,6 +507,7 @@ class GameScene: SKScene {
         exitLabel.zPosition = 11
         exitBackground.addChild(exitLabel)
     }
+
 
     func checkGameOver() {
         if self.score < 0 {
@@ -466,27 +524,38 @@ class GameScene: SKScene {
 
         // Stop background music
         stopBackgroundMusic()
+        
+        // play losing sound
+        playSound(named: "youLose.mp3")
 
         // Remove the pause button
         self.pauseButton.removeFromParent()
 
-        // Display "Game Over" label
+        // Create white background for "Game Over" label
+        let gameOverBackground = SKShapeNode(rectOf: CGSize(width: 250, height: 100), cornerRadius: 10)
+        gameOverBackground.fillColor = SKColor.white
+        gameOverBackground.position = CGPoint(x: frame.midX, y: frame.midY + 50)
+        gameOverBackground.zPosition = 1
+        addChild(gameOverBackground)
+        
+        // Create "Game Over" label
         let gameOverLabel = SKLabelNode(fontNamed: "American Typewriter")
         gameOverLabel.text = "Game Over!"
         gameOverLabel.fontSize = 40
         gameOverLabel.fontColor = SKColor.red
-        gameOverLabel.position = CGPoint(x: frame.midX, y: frame.midY + 50)
-        addChild(gameOverLabel)
-        
-        // Create background for Play Again button with rounded corners
+        gameOverLabel.position = CGPoint(x: 0, y: -gameOverLabel.frame.height / 2)  // Center it vertically
+        gameOverLabel.horizontalAlignmentMode = .center
+        gameOverLabel.zPosition = 2
+        gameOverBackground.addChild(gameOverLabel)
+
+        // Create background for Play Again button
         let playAgainBackground = SKShapeNode(rectOf: CGSize(width: 200, height: 50), cornerRadius: 20)
         playAgainBackground.fillColor = SKColor(red: 1.0, green: 0.85, blue: 0.2, alpha: 1.0) // Yellow color
-        playAgainBackground.position = CGPoint(x: frame.midX, y: frame.midY - 40) // Adjusted position for spacing
+        playAgainBackground.position = CGPoint(x: frame.midX, y: frame.midY - 40)
         playAgainBackground.name = "playAgainButton"
         playAgainBackground.zPosition = 10
         addChild(playAgainBackground)
         
-        // Create label for Play Again button
         let playAgainLabel = SKLabelNode(fontNamed: "American Typewriter")
         playAgainLabel.text = "Play Again"
         playAgainLabel.fontSize = 30
@@ -495,15 +564,14 @@ class GameScene: SKScene {
         playAgainLabel.zPosition = 11
         playAgainBackground.addChild(playAgainLabel)
         
-        // Create background for Exit button with rounded corners
+        // Create background for Exit button
         let exitBackground = SKShapeNode(rectOf: CGSize(width: 200, height: 50), cornerRadius: 20)
         exitBackground.fillColor = SKColor.blue
-        exitBackground.position = CGPoint(x: frame.midX, y: frame.midY - 100) // Adjusted position for spacing
+        exitBackground.position = CGPoint(x: frame.midX, y: frame.midY - 100)
         exitBackground.name = "exitButton"
         exitBackground.zPosition = 10
         addChild(exitBackground)
         
-        // Create label for Exit button
         let exitLabel = SKLabelNode(fontNamed: "American Typewriter")
         exitLabel.text = "Exit"
         exitLabel.fontSize = 30
@@ -520,24 +588,51 @@ extension GameScene: SKPhysicsContactDelegate {
     
     func didBegin(_ contact: SKPhysicsContact) {
         if (contact.bodyA.node?.name == "banana" && contact.bodyB.node?.name == "minion") ||
-           (contact.bodyA.node?.name == "minion" && contact.bodyB.node?.name == "banana") {
+            (contact.bodyA.node?.name == "minion" && contact.bodyB.node?.name == "banana") {
             self.score += 1
             if contact.bodyA.node?.name == "banana" {
                 contact.bodyA.node?.removeFromParent()
             } else if contact.bodyB.node?.name == "banana" {
                 contact.bodyB.node?.removeFromParent()
             }
+            displayMessage("Banana Acquired!")  // Show the message
+            playAlternateCatchSound()  // Alternate between the two banana sounds
             self.checkWinCondition()
         }
         
+        // Handle banana hitting the ground (banana missed)
+        if (contact.bodyA.node?.name == "banana" && contact.bodyB.node?.name == "ground") ||
+            (contact.bodyA.node?.name == "ground" && contact.bodyB.node?.name == "banana") {
+            self.score -= 1
+            if contact.bodyA.node?.name == "banana" {
+                contact.bodyA.node?.removeFromParent()
+            } else if contact.bodyB.node?.name == "banana" {
+                contact.bodyB.node?.removeFromParent()
+            }
+            displayMessage("Banana Missed!")  // Show the message
+            playSound(named: "missedBanana.mp3")  // Play the sound
+            self.checkGameOver()  // Check if the score goes below 0 after deduction
+        }
+        
         if (contact.bodyA.node?.name == "bomb" && contact.bodyB.node?.name == "minion") ||
-           (contact.bodyA.node?.name == "minion" && contact.bodyB.node?.name == "bomb") {
+            (contact.bodyA.node?.name == "minion" && contact.bodyB.node?.name == "bomb") {
             if contact.bodyA.node?.name == "bomb" {
                 contact.bodyA.node?.removeFromParent()
             } else if contact.bodyB.node?.name == "bomb" {
                 contact.bodyB.node?.removeFromParent()
             }
-            self.gameOver()
+            
+            displayMessage("Hit Bomb!")  // Show the message
+            playSound(named: "hitBomb.mp3")  // Play the sound
+            
+            // Add a delay to allow the sound to play before game over
+            let delay = SKAction.wait(forDuration: 0.1)
+            let triggerGameOver = SKAction.run {
+                self.gameOver()
+            }
+            
+            // Run the actions in sequence
+            self.run(SKAction.sequence([delay, triggerGameOver]))
         }
     }
 }
@@ -556,7 +651,12 @@ extension GameScene {
 
         let newXPosition = minion.position.x + CGFloat(gravity.x * 50)  // Adjust sensitivity
 
-        if newXPosition >= minion.size.width / 2 && newXPosition <= size.width - minion.size.width / 2 {
+        // Adjust the padding
+        let leftPadding: CGFloat = 18
+        let rightPadding: CGFloat = 18
+            
+        // Ensure the minion stays within the screen bounds
+        if newXPosition >= leftPadding && newXPosition <= size.width - rightPadding {
             minion.position.x = newXPosition
         }
 
@@ -603,14 +703,24 @@ extension GameScene {
                     restartGame() // Restart and reset music
                 }
                 
-                // Handle the "Exit" button to exit the game
+                // Handle the "Exit" button to go back to the previous view
                 if node.name == "exitButton" {
-                    exit(0)  // This will close the app; replace as needed
+                    if let viewController = self.view?.window?.rootViewController as? UINavigationController {
+                        viewController.popViewController(animated: true) // Navigate back in a navigation controller
+                    } else {
+                        self.view?.window?.rootViewController?.dismiss(animated: true, completion: nil) // Dismiss modally presented view controller
+                    }
                 }
             }
         }
+    }
+    
+    // MARK: Sound Effects!
+    func playSound(named soundFileName: String) {
+        let sound = SKAction.playSoundFileNamed(soundFileName, waitForCompletion: false)
+        self.run(sound)
+    }
 
-}
 
     func random() -> CGFloat {
         return CGFloat(Float(arc4random()) / Float(Int.max))
