@@ -311,7 +311,7 @@ class GameScene: SKScene {
         banana.size = CGSize(width: bananaWidth, height: bananaHeight)
         
         // Generate a random position at the top
-        let randomX = random(min: bananaWidth / 2, max: size.width - bananaWidth / 2)
+        let randomX = CGFloat.random(in: bananaWidth / 2...(size.width - bananaWidth / 2))  // Random X within screen bounds
         banana.position = CGPoint(x: randomX, y: size.height * 0.9)  // Top of the screen
                 
         // Set up the physics body for falling
@@ -340,7 +340,7 @@ class GameScene: SKScene {
         bomb.size = CGSize(width: bombWidth, height: bombHeight)
             
         // Generate random position at the top
-        let randomX = random(min: bombWidth / 2, max: size.width - bombWidth / 2)
+        let randomX = CGFloat.random(in: bombWidth / 2...(size.width - bombWidth / 2))  // Random X within screen bounds
         bomb.position = CGPoint(x: randomX, y: size.height * 0.9)  // Top of the screen
                     
         // Set up the physics body for falling
@@ -722,6 +722,8 @@ extension GameScene {
     }
 
 
+    // MARK: Utility Functions (thanks ray wenderlich!)
+    // generate some random numbers for cor graphics floats
     func random() -> CGFloat {
         return CGFloat(Float(arc4random()) / Float(Int.max))
     }
