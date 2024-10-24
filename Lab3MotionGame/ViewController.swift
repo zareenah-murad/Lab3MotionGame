@@ -109,21 +109,19 @@ class ViewController: UIViewController {
     
     func startRealTimeStepUpdates() {
         guard CMPedometer.isStepCountingAvailable() else { return }
-        
+
         let now = Date()
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: now)  // Get midnight of the current day
         
-        // Load the previously saved step count (if any)
-        let previousStepsToday = UserDefaults.standard.integer(forKey: "stepsToday")
-        
+        // Start receiving updates from the pedometer
         self.motionModel.pedometer.startUpdates(from: startOfDay) { pedData, error in
             if let pedData = pedData {
                 DispatchQueue.main.async {
                     let newSteps = pedData.numberOfSteps.intValue
                     
-                    // Adjust with the previously stored steps
-                    self.stepsToday = newSteps + previousStepsToday
+                    // Do not add the previously stored steps, just update the current steps for today
+                    self.stepsToday = newSteps
                     
                     // Persist updated steps
                     UserDefaults.standard.set(self.stepsToday, forKey: "stepsToday")
@@ -138,6 +136,7 @@ class ViewController: UIViewController {
             }
         }
     }
+
     
     
     // Function to fetch yesterday's steps
@@ -345,9 +344,10 @@ class ViewController: UIViewController {
     
     // MARK: ===== Play Game Button Action =====
     @IBAction func playGameButtonPressed(_ sender: UIButton) {
+        // Check if the step goal is reached
         if stepsToday >= dailyStepGoal {
-            // Trigger the segue with the correct identifier
-            performSegue(withIdentifier: "gameSegue", sender: self)
+            // Trigger the segue manually using the identifier you set in the storyboard
+            performSegue(withIdentifier: "gameSegue", sender: self)  // "gameSegue" is the segue identifier set in the storyboard
         } else {
             // Show alert if step goal is not reached
             let alert = UIAlertController(title: "Step Goal Not Reached", message: "You need to reach your daily step goal before playing the game.", preferredStyle: .alert)
@@ -355,6 +355,7 @@ class ViewController: UIViewController {
             self.present(alert, animated: true, completion: nil)
         }
     }
+
 }
 
 extension ViewController: MotionDelegate {

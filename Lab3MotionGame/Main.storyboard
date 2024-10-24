@@ -83,7 +83,6 @@ until goal reset</string>
                                 </buttonConfiguration>
                                 <connections>
                                     <action selector="playGameButtonPressed:" destination="f3o-14-sZA" eventType="touchUpInside" id="lXA-eb-ahO"/>
-                                    <segue destination="uAs-2Q-GOu" kind="show" identifier="gameSegue" id="5Vf-Ie-3wO"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -117,6 +116,7 @@ until goal reset</string>
                         <outlet property="timeUntilResetLabel" destination="jXm-lw-bJW" id="AP8-2U-XEd"/>
                         <outlet property="todayStepsLabel" destination="mju-K5-mlj" id="0uM-sG-0nO"/>
                         <outlet property="yesterdayStepsLabel" destination="EbG-5Q-BCQ" id="SpO-Ab-U3f"/>
+                        <segue destination="uAs-2Q-GOu" kind="show" identifier="gameSegue" id="wNI-Lb-4P6"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="b4c-k3-D6c" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
